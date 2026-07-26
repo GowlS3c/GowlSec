@@ -103,7 +103,7 @@ import { useAuth } from "./context/AuthContext";
 import Register from "./pages/Register";
 import { io } from "socket.io-client";
 import owlLogoImg from "./assets/owl-logo.png";
-import TrustHighlights from "./Trusthighlights";
+import TrustHighlights from "./TrustHighlights";
 
 function GitHubIcon({ size = 16, style, color = "currentColor" }) {
   return (
