@@ -103,7 +103,7 @@ import { useAuth } from "./context/AuthContext";
 import Register from "./pages/Register";
 import { io } from "socket.io-client";
 import owlLogoImg from "./assets/owl-logo.png";
-import TrustHighlights from "./TrustHighlights";
+import TrustHighlights from "./Trusthighlights";
 
 function GitHubIcon({ size = 16, style, color = "currentColor" }) {
   return (
@@ -633,13 +633,6 @@ function getRoomIcon(key) {
 
 const DEFAULT_ROOMS = [
   {
-    key: "general",
-    label: "Général",
-    desc: "Discussion libre de la communauté",
-    isPublic: true,
-    icon: "web",
-  },
-  {
     key: "updates",
     label: "Updates",
     desc: "Nouveautés, correctifs et annonces officielles de GowlSec",
@@ -648,6 +641,13 @@ const DEFAULT_ROOMS = [
     owner: "system",
     adminOnly: true,
     official: true,
+  },
+  {
+    key: "general",
+    label: "Général",
+    desc: "Discussion libre de la communauté",
+    isPublic: true,
+    icon: "web",
   },
 ];
 
@@ -16228,7 +16228,7 @@ function LearningPathsTab({ currentUser, setTab }) {
     activePath.steps[activePath.steps.length - 1];
 
   return (
-    <div className="max-w-7xl mx-auto gowl-academy-world">
+    <div className="max-w-7xl mx-auto gowl-academy-world gowl-community-view gowl-view-parcours">
       <SectionHeader
         icon={<Compass size={19} />}
         eyebrow="GowlSec Academy"
@@ -18275,17 +18275,14 @@ function LegalInformationPage({ type, setTab }) {
       warning:
         "Les éléments entre crochets doivent être complétés par le propriétaire avant la mise en production. Ils ne peuvent pas être devinés à partir du code du site.",
       sections: [
-        [
-          "Éditeur du site",
-          "GowlSec — projet communautaire de cybersécurité. Statut juridique : [À COMPLÉTER : particulier, association, micro-entreprise ou société]. Nom ou raison sociale : [À COMPLÉTER]. Adresse : [À COMPLÉTER]. Numéro SIREN/RNA le cas échéant : [À COMPLÉTER]. Contact : GowlSec@proton.me.",
-        ],
+          
         [
           "Direction de la publication",
-          "Directeur ou directrice de la publication : [NOM ET PRÉNOM À COMPLÉTER].",
+          "Directeur ou directrice de la publication : [Gowlsec].",
         ],
         [
           "Hébergement",
-          "Hébergeur du site public : [À COMPLÉTER selon le déploiement réellement utilisé : nom, raison sociale, adresse et téléphone]. L’API est actuellement destinée à être déployée sur Railway et la base de données sur Neon ; ces prestataires techniques sont également décrits dans la politique de confidentialité.",
+          "Hébergeur du site public : Cloudflare. L’API est actuellement destinée à être déployée sur Railway et la base de données sur Neon ; ces prestataires techniques sont également décrits dans la politique de confidentialité.",
         ],
         [
           "Conception et contact",
@@ -19466,12 +19463,12 @@ export default function GowlSec() {
           padding: clamp(14px, 2vw, 24px);
           border-radius: 24px;
           overflow: hidden;
-          border: 1px solid color-mix(in srgb, var(--community-accent) 28%, ${C.line});
+          border: 1px solid color-mix(in srgb, var(--community-accent) 14%, #18222e);
           background:
-            radial-gradient(620px 320px at 0% 0%, color-mix(in srgb, var(--community-accent) 19%, transparent), transparent 68%),
-            radial-gradient(520px 280px at 100% 18%, rgba(139,233,253,.08), transparent 72%),
-            linear-gradient(145deg, rgba(28,45,64,.97), rgba(18,32,47,.96));
-          box-shadow: 0 28px 70px -48px color-mix(in srgb, var(--community-accent) 70%, transparent), inset 0 1px 0 rgba(255,255,255,.055);
+            radial-gradient(620px 320px at 0% 0%, color-mix(in srgb, var(--community-accent) 7%, transparent), transparent 70%),
+            radial-gradient(520px 280px at 100% 18%, rgba(139,233,253,.025), transparent 74%),
+            linear-gradient(145deg, rgba(8,13,20,.985), rgba(5,9,14,.98));
+          box-shadow: 0 24px 60px -48px rgba(0,0,0,.95), inset 0 1px 0 rgba(255,255,255,.025);
         }
         .gowl-view-forum { --community-accent: #6E8BFF; }
         .gowl-view-hub { --community-accent: #3AD6CF; }
@@ -19479,13 +19476,44 @@ export default function GowlSec() {
         .gowl-view-labs { --community-accent: #B78CFF; }
         .gowl-view-writeups { --community-accent: #43D7A5; }
         .gowl-view-finder { --community-accent: #62E6B6; }
+        .gowl-view-parcours { --community-accent: #5B8CFF; }
+        .gowl-view-forum {
+          background:
+            radial-gradient(700px 360px at 8% -8%, rgba(91,110,245,.095), transparent 68%),
+            linear-gradient(145deg, rgba(8,12,19,.99), rgba(5,8,13,.985));
+        }
+        .gowl-view-labs {
+          background:
+            radial-gradient(680px 350px at 92% -6%, rgba(183,140,255,.085), transparent 69%),
+            linear-gradient(145deg, rgba(10,9,17,.99), rgba(6,7,12,.985));
+        }
+        .gowl-view-teams {
+          background:
+            radial-gradient(720px 360px at 6% -8%, rgba(255,180,93,.075), transparent 70%),
+            linear-gradient(145deg, rgba(13,11,8,.99), rgba(7,8,10,.985));
+        }
+        .gowl-view-writeups {
+          background:
+            radial-gradient(690px 350px at 94% -8%, rgba(67,215,165,.075), transparent 70%),
+            linear-gradient(145deg, rgba(7,13,11,.99), rgba(5,9,9,.985));
+        }
+        .gowl-view-finder {
+          background:
+            radial-gradient(690px 350px at 8% -8%, rgba(98,230,182,.075), transparent 70%),
+            linear-gradient(145deg, rgba(7,13,12,.99), rgba(5,9,10,.985));
+        }
+        .gowl-view-parcours {
+          background:
+            radial-gradient(760px 380px at 50% -10%, rgba(91,140,255,.09), transparent 70%),
+            linear-gradient(145deg, rgba(7,11,18,.99), rgba(5,8,13,.985));
+        }
         .gowl-community-view::before {
           content: "";
           position: absolute;
           inset: 0;
           z-index: -2;
           pointer-events: none;
-          opacity: .24;
+          opacity: .11;
           background-image:
             linear-gradient(color-mix(in srgb, var(--community-accent) 18%, transparent) 1px, transparent 1px),
             linear-gradient(90deg, color-mix(in srgb, var(--community-accent) 18%, transparent) 1px, transparent 1px),
@@ -19510,22 +19538,27 @@ export default function GowlSec() {
         .gowl-community-view .gowl-section-head { margin-bottom: 10px; }
         .gowl-community-view .gowl-section-icon { width: 48px; height: 48px; border-radius: 15px; }
         .gowl-community-view .gowl-hud-card,
-        .gowl-community-view .gowl-community-card {
-          background: linear-gradient(145deg, rgba(35,55,76,.94), rgba(24,40,57,.92)) !important;
-          border-color: color-mix(in srgb, var(--community-accent) 22%, ${C.line}) !important;
-          box-shadow: inset 0 1px 0 rgba(255,255,255,.045), 0 18px 38px -34px rgba(0,0,0,.9);
+        .gowl-community-view .gowl-community-card,
+        .gowl-community-view .rounded-lg.relative {
+          background: linear-gradient(145deg, rgba(14,21,30,.97), rgba(9,15,22,.96)) !important;
+          border-color: color-mix(in srgb, var(--community-accent) 12%, #1d2935) !important;
+          box-shadow: inset 0 1px 0 rgba(255,255,255,.025), 0 16px 34px -30px rgba(0,0,0,.95);
           backdrop-filter: blur(12px);
         }
+        .gowl-community-view .rounded-lg.relative .rounded-lg,
+        .gowl-community-view .rounded-lg.relative .rounded-xl {
+          background-color: rgba(8,13,20,.9);
+        }
         .gowl-community-view .gowl-community-card:hover {
-          transform: translateY(-2px);
-          border-color: color-mix(in srgb, var(--community-accent) 55%, ${C.line}) !important;
-          box-shadow: 0 18px 38px -28px color-mix(in srgb, var(--community-accent) 42%, transparent);
+          transform: translateY(-1px);
+          border-color: color-mix(in srgb, var(--community-accent) 28%, #1d2935) !important;
+          box-shadow: 0 16px 32px -28px rgba(0,0,0,.95);
         }
         .gowl-community-view input,
         .gowl-community-view textarea,
         .gowl-community-view select {
-          background-color: rgba(24,40,57,.92) !important;
-          border-color: color-mix(in srgb, var(--community-accent) 22%, ${C.line}) !important;
+          background-color: rgba(7,12,18,.96) !important;
+          border-color: color-mix(in srgb, var(--community-accent) 12%, #202c38) !important;
         }
         .gowl-community-view input:focus,
         .gowl-community-view textarea:focus,
@@ -19533,7 +19566,7 @@ export default function GowlSec() {
           border-color: color-mix(in srgb, var(--community-accent) 64%, #fff) !important;
           box-shadow: 0 0 0 3px color-mix(in srgb, var(--community-accent) 12%, transparent) !important;
         }
-        .gowl-community-view .gowl-qthread { background: rgba(18,32,47,.56); }
+        .gowl-community-view .gowl-qthread { background: rgba(6,11,17,.78); }
         @media (max-width: 640px) {
           .gowl-community-view { padding: 12px; border-radius: 18px; }
           .gowl-community-view .gowl-section-icon { width: 42px; height: 42px; }
@@ -20946,27 +20979,6 @@ function ProfessionalHome({
       ? memberCount
       : profiles.length;
 
-  const stats = [
-    {
-      label: "Membres",
-      value: registeredMemberCount,
-      icon: Users,
-      color: gh.blue,
-    },
-    {
-      label: "Trophées décrochés",
-      value: trophies.length,
-      icon: Trophy,
-      color: gh.orange,
-    },
-    {
-      label: "Questions répondues",
-      value: questions.filter((q) => (q.answers || []).length > 0).length,
-      icon: MessageCircle,
-      color: gh.purple,
-    },
-  ];
-
   const homeAnnouncements = useMemo(
     () =>
       news
@@ -20974,54 +20986,6 @@ function ProfessionalHome({
         .sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0)),
     [news],
   );
-
-  const nextCtf = useMemo(() => {
-    const ctfs = news
-      .filter(
-        (item) => item.external && String(item.id).startsWith("ctftime-"),
-      )
-      .sort(
-        (a, b) =>
-          new Date(a.start || a.date || 0) - new Date(b.start || b.date || 0),
-      );
-    return (
-      ctfs.find(
-        (item) => new Date(item.finish || item.start || item.date) >= new Date(),
-      ) || ctfs[0]
-    );
-  }, [news]);
-
-  const homeRadar = [
-    {
-      label: "Prochain CTF",
-      title: nextCtf?.title || "Calendrier à surveiller",
-      meta: nextCtf
-        ? new Date(nextCtf.start || nextCtf.date).toLocaleDateString("fr-FR", {
-            day: "numeric",
-            month: "long",
-          })
-        : "Découvre les prochains événements",
-      icon: Flag,
-      color: gh.orange,
-      tab: "actus",
-    },
-    {
-      label: "Besoin d’un coup de main",
-      title: `${questions.filter((question) => !question.resolved).length} question${questions.filter((question) => !question.resolved).length > 1 ? "s" : ""} ouverte${questions.filter((question) => !question.resolved).length > 1 ? "s" : ""}`,
-      meta: "Réponds, aide et gagne des points",
-      icon: MessageCircle,
-      color: gh.blue,
-      tab: "forum",
-    },
-    {
-      label: "Opérations en cours",
-      title: `${labs.length} lab${labs.length > 1 ? "s" : ""} · ${teams.length} team${teams.length > 1 ? "s" : ""}`,
-      meta: "Rejoins une mission communautaire",
-      icon: Target,
-      color: gh.green,
-      tab: labs.length ? "labs" : "equipes",
-    },
-  ];
 
   return (
     <div className="ghx-home">
@@ -21047,43 +21011,6 @@ function ProfessionalHome({
         .ghx-cta-secondary:hover { border-color: #3a4c60; }
         .ghx-proof { display: flex; align-items: center; gap: 10px; }
         .ghx-proof-text { font-size: 12px; color: ${gh.muted}; }
-
-        /* Stats — rangée éditoriale à séparateurs, pas des cartes */
-        .ghx-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 14px; margin: 8px 0 46px; }
-        .ghx-stat {
-          position: relative; overflow: hidden; padding: 20px 20px 18px; border-radius: 10px;
-          background: linear-gradient(155deg, ${gh.panel2}, ${gh.panel});
-          border: 1px solid ${gh.border};
-          transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
-        }
-        .ghx-stat:hover { transform: translateY(-2px); border-color: currentColor; box-shadow: 0 10px 26px -14px currentColor; }
-        .ghx-stat::before, .ghx-stat::after,
-        .ghx-stat-corner-tl, .ghx-stat-corner-br { content: ""; position: absolute; width: 14px; height: 14px; pointer-events: none; opacity: 0.9; }
-        .ghx-stat::before { top: 8px; left: 8px; border-top: 1.5px solid; border-left: 1.5px solid; }
-        .ghx-stat::after { bottom: 8px; right: 8px; border-bottom: 1.5px solid; border-right: 1.5px solid; }
-        .ghx-stat-scan { position: absolute; left: 0; right: 0; height: 40%; pointer-events: none; opacity: 0.5; background: linear-gradient(180deg, currentColor, transparent); mix-blend-mode: overlay; animation: ghx-scan 4.5s ease-in-out infinite; }
-        @keyframes ghx-scan { 0%, 100% { top: -40%; opacity: 0; } 15% { opacity: 0.5; } 50% { top: 100%; opacity: 0; } 100% { top: 100%; opacity: 0; } }
-        .ghx-stat-glow { position: absolute; top: -30px; right: -30px; width: 90px; height: 90px; border-radius: 50%; filter: blur(22px); opacity: 0.4; pointer-events: none; }
-        .ghx-stat-icon { position: relative; display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 7px; margin-bottom: 12px; }
-        .ghx-stat-value { position: relative; font-family: ${DISPLAY_FONT}; font-size: 27px; font-weight: 800; line-height: 1; color: ${gh.text}; }
-        .ghx-stat-label { position: relative; margin-top: 7px; font-size: 11.5px; color: ${gh.muted}; font-family: ${MONO_FONT}; text-transform: uppercase; letter-spacing: 0.06em; }
-
-        .ghx-radar { margin: -18px 0 48px; }
-        .ghx-radar-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
-        .ghx-radar-title { margin: 0; font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: ${gh.muted}; font-family: ${MONO_FONT}; }
-        .ghx-radar-live { display: inline-flex; align-items: center; gap: 6px; font-size: 10px; color: ${gh.green}; font-family: ${MONO_FONT}; }
-        .ghx-radar-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border: 1px solid ${gh.border}; border-radius: 12px; overflow: hidden; background: ${gh.panel}; }
-        .ghx-radar-item { all: unset; box-sizing: border-box; position: relative; display: grid; grid-template-columns: 38px minmax(0, 1fr) auto; align-items: center; gap: 12px; min-width: 0; padding: 16px; cursor: pointer; border-right: 1px solid ${gh.border}; transition: background .18s ease; }
-        .ghx-radar-item:last-child { border-right: 0; }
-        .ghx-radar-item:hover { background: ${gh.panel2}; }
-        .ghx-radar-icon { width: 38px; height: 38px; display: inline-flex; align-items: center; justify-content: center; border-radius: 10px; color: var(--radar-accent); background: color-mix(in srgb, var(--radar-accent) 14%, transparent); border: 1px solid color-mix(in srgb, var(--radar-accent) 36%, transparent); }
-        .ghx-radar-body { min-width: 0; }
-        .ghx-radar-label { display: block; font-size: 8.5px; font-weight: 800; text-transform: uppercase; letter-spacing: .08em; color: var(--radar-accent); font-family: ${MONO_FONT}; }
-        .ghx-radar-name { display: block; margin-top: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: ${gh.text}; font-size: 13px; font-weight: 750; font-family: ${DISPLAY_FONT}; }
-        .ghx-radar-meta { display: block; margin-top: 3px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: ${gh.muted}; font-size: 10.5px; }
-        .ghx-radar-arrow { color: ${gh.muted}; transition: transform .18s ease, color .18s ease; }
-        .ghx-radar-item:hover .ghx-radar-arrow { color: var(--radar-accent); transform: translateX(3px); }
-        @media (max-width: 900px) { .ghx-radar-grid { grid-template-columns: 1fr; } .ghx-radar-item { border-right: 0; border-bottom: 1px solid ${gh.border}; } .ghx-radar-item:last-child { border-bottom: 0; } }
 
         /* Toutes les annonces restent accessibles sans allonger la page : rail horizontal éditorial. */
         .ghx-updates { margin: -8px 0 48px; }
@@ -21194,14 +21121,31 @@ function ProfessionalHome({
           .ghx-feature, .ghx-feature-index::after, .ghx-feature-icon-wrap::before, .ghx-feature-start { animation: none; opacity: 1; transform: none; }
         }
 
-        /* Activité + Top talents — colonnes séparées par une règle, pas des cartes remplies */
-        .ghx-columns { display: grid; grid-template-columns: 1fr; gap: 40px; }
-        @media (min-width: 1024px) { .ghx-columns { grid-template-columns: 1.5fr 1px 0.9fr; gap: 40px; } }
-        .ghx-col-divider { display: none; }
-        @media (min-width: 1024px) { .ghx-col-divider { display: block; background: ${gh.border}; } }
-        .ghx-col-title { font-size: 16px; font-weight: 700; margin: 0 0 14px; color: ${gh.text}; }
+        /* Activité + Top talents — véritable tableau communautaire */
+        .ghx-columns { display: grid; grid-template-columns: 1fr; gap: 18px; margin-top: 4px; }
+        @media (min-width: 1024px) { .ghx-columns { grid-template-columns: minmax(0, 1.42fr) minmax(320px, .78fr); align-items: stretch; } }
+        .ghx-overview-side { display: grid; grid-template-columns: 1fr; gap: 18px; }
+        .ghx-overview-card {
+          position: relative; overflow: hidden; min-width: 0; padding: 22px;
+          border-radius: 15px; border: 1px solid ${gh.border};
+          background: linear-gradient(150deg, rgba(17,29,43,.82), rgba(7,12,19,.94));
+          box-shadow: inset 0 1px 0 rgba(255,255,255,.035), 0 24px 50px -40px rgba(0,0,0,.95);
+        }
+        .ghx-overview-card::before {
+          content: ""; position: absolute; width: 220px; height: 220px; right: -120px; top: -135px;
+          border-radius: 50%; pointer-events: none; filter: blur(14px); opacity: .11;
+          background: var(--overview-accent, ${gh.blue});
+        }
+        .ghx-overview-head { position: relative; display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-bottom: 18px; }
+        .ghx-overview-heading { display: flex; align-items: center; gap: 11px; min-width: 0; }
+        .ghx-overview-head-icon { width: 36px; height: 36px; border-radius: 10px; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; color: var(--overview-accent); background: color-mix(in srgb, var(--overview-accent) 14%, transparent); border: 1px solid color-mix(in srgb, var(--overview-accent) 32%, transparent); }
+        .ghx-col-title { font-size: 15px; font-weight: 750; margin: 0; color: ${gh.text}; }
+        .ghx-col-sub { display: block; margin-top: 2px; font-size: 10.5px; color: ${gh.muted}; }
+        .ghx-overview-status { display: inline-flex; align-items: center; gap: 6px; flex-shrink: 0; padding: 4px 8px; border-radius: 999px; font: 700 9px ${MONO_FONT}; text-transform: uppercase; letter-spacing: .06em; color: var(--overview-accent); background: color-mix(in srgb, var(--overview-accent) 9%, transparent); border: 1px solid color-mix(in srgb, var(--overview-accent) 25%, transparent); }
+        .ghx-overview-status::before { content: ""; width: 5px; height: 5px; border-radius: 50%; background: currentColor; box-shadow: 0 0 8px currentColor; }
         .ghx-empty { padding: 28px 0; font-size: 13.5px; color: ${gh.muted}; }
-        .ghx-activity-row { all: unset; box-sizing: border-box; display: grid; grid-template-columns: 26px 1fr auto; align-items: center; gap: 12px; width: 100%; padding: 14px 0; cursor: pointer; }
+        .ghx-activity-row { all: unset; box-sizing: border-box; display: grid; grid-template-columns: 32px 1fr auto; align-items: center; gap: 12px; width: 100%; padding: 13px 11px; border-radius: 10px; cursor: pointer; transition: background .18s ease, transform .18s ease; }
+        .ghx-activity-row:hover { background: rgba(255,255,255,.035); transform: translateX(3px); }
         .ghx-activity-row.bordered { border-top: 1px solid ${gh.border}; }
         .ghx-activity-main { min-width: 0; }
         .ghx-activity-top { display: flex; align-items: center; gap: 8px; min-width: 0; }
@@ -21210,21 +21154,21 @@ function ProfessionalHome({
         .ghx-activity-meta { display: block; font-size: 12px; margin-top: 4px; color: ${gh.muted}; }
         .ghx-activity-comments { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: ${gh.muted}; white-space: nowrap; }
 
-        .ghx-talent-row { all: unset; box-sizing: border-box; display: flex; align-items: center; gap: 11px; width: 100%; padding: 12px 0; cursor: pointer; }
+        .ghx-talent-row { all: unset; box-sizing: border-box; display: flex; align-items: center; gap: 11px; width: 100%; padding: 11px 9px; cursor: pointer; }
         .ghx-talent-row.bordered { border-top: 1px solid ${gh.border}; }
         .ghx-talent-rank { width: 18px; flex-shrink: 0; font-size: 13.5px; }
         .ghx-talent-name { flex: 1; min-width: 0; font-size: 13.5px; font-weight: 600; color: ${gh.text}; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .ghx-talent-pts { flex-shrink: 0; font-size: 12px; font-weight: 700; color: ${gh.orange}; font-family: ${MONO_FONT}; }
-        .ghx-see-all { all: unset; box-sizing: border-box; display: inline-flex; align-items: center; gap: 7px; margin-top: 14px; font-size: 13px; color: ${gh.blue}; cursor: pointer; }
-        .ghx-see-all:hover { text-decoration: underline; }
-        .ghx-about { margin-top: 26px; padding-top: 22px; border-top: 1px solid ${gh.border}; }
-        .ghx-about-title { font-size: 14px; font-weight: 700; margin: 0 0 8px; color: ${gh.text}; }
+        .ghx-see-all { all: unset; box-sizing: border-box; display: inline-flex; align-items: center; gap: 7px; margin-top: 15px; padding: 7px 10px; border-radius: 8px; font-size: 12px; font-weight: 650; color: ${gh.blue}; cursor: pointer; border: 1px solid color-mix(in srgb, currentColor 28%, transparent); background: color-mix(in srgb, currentColor 7%, transparent); transition: background .18s ease, transform .18s ease; }
+        .ghx-see-all:hover { background: color-mix(in srgb, currentColor 12%, transparent); transform: translateY(-1px); }
+        .ghx-about { --overview-accent: ${gh.green}; }
+        .ghx-about-title { font-size: 14px; font-weight: 700; margin: 0; color: ${gh.text}; }
         .ghx-about-text { font-size: 13px; line-height: 1.55; color: ${gh.muted}; margin: 0; }
         .ghx-about-tags { display: flex; flex-wrap: wrap; gap: 6px; margin: 12px 0 4px; }
         .ghx-about-tag { font-size: 10.5px; font-family: ${MONO_FONT}; padding: 3px 9px; border-radius: 6px; border: 1px solid ${gh.border}; color: ${gh.muted}; background: ${gh.panel2}; }
 
         /* États vides — accueillants plutôt que plats */
-        .ghx-empty-state { display: flex; flex-direction: column; align-items: flex-start; gap: 12px; padding: 22px 0 6px; }
+        .ghx-empty-state { position: relative; display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 12px; min-height: 215px; padding: 26px; border-radius: 12px; border: 1px dashed color-mix(in srgb, currentColor 28%, ${gh.border}); background: linear-gradient(145deg, color-mix(in srgb, currentColor 5%, transparent), rgba(3,7,11,.42)); }
         .ghx-empty-icon { width: 42px; height: 42px; border-radius: 12px; display: flex; align-items: center; justify-content: center; position: relative; }
         .ghx-empty-icon::before {
           content: ""; position: absolute; inset: -6px; border-radius: 16px; background: currentColor;
@@ -21312,56 +21256,6 @@ function ProfessionalHome({
       </section>
 
       <TrustHighlights gh={gh} />
-
-      <div className="ghx-stats">
-        {stats.map(({ label, value, icon: Icon, color }) => (
-          <div key={label} className="ghx-stat" style={{ color }}>
-            <span className="ghx-stat-scan" />
-            <span className="ghx-stat-glow" style={{ background: color }} />
-            <span
-              className="ghx-stat-icon"
-              style={{ background: `${color}18` }}
-            >
-              <Icon size={16} />
-            </span>
-            <div className="ghx-stat-value" style={{ color: gh.text }}>
-              {value}
-            </div>
-            <div className="ghx-stat-label">{label}</div>
-          </div>
-        ))}
-      </div>
-
-      <section className="ghx-radar">
-        <div className="ghx-radar-head">
-          <h2 className="ghx-radar-title">Radar communautaire</h2>
-          <span className="ghx-radar-live">
-            <span className="gowl-live-dot" style={{ background: gh.green }} />
-            Données en direct
-          </span>
-        </div>
-        <div className="ghx-radar-grid">
-          {homeRadar.map(({ label, title, meta, icon: Icon, color, tab }) => (
-            <button
-              type="button"
-              key={label}
-              onClick={() => setTab(tab)}
-              className="ghx-radar-item"
-              style={{ "--radar-accent": color }}
-            >
-              <span className="ghx-radar-icon">
-                <Icon size={17} />
-              </span>
-              <span className="ghx-radar-body">
-                <span className="ghx-radar-label">{label}</span>
-                <span className="ghx-radar-name">{title}</span>
-                <span className="ghx-radar-meta">{meta}</span>
-              </span>
-              <ChevronRight size={14} className="ghx-radar-arrow" />
-            </button>
-          ))}
-        </div>
-      </section>
 
       <section id="gowlsec-updates" className="ghx-updates">
         <div className="ghx-updates-head">
@@ -21676,8 +21570,24 @@ function ProfessionalHome({
       </div>
 
       <div className="ghx-columns">
-        <div>
-          <h2 className="ghx-col-title">Activité récente</h2>
+        <section
+          className="ghx-overview-card"
+          style={{ "--overview-accent": gh.blue }}
+        >
+          <div className="ghx-overview-head">
+            <div className="ghx-overview-heading">
+              <span className="ghx-overview-head-icon">
+                <Activity size={17} />
+              </span>
+              <span>
+                <h2 className="ghx-col-title">Activité récente</h2>
+                <span className="ghx-col-sub">
+                  Les derniers mouvements de la communauté
+                </span>
+              </span>
+            </div>
+            <span className="ghx-overview-status">Temps réel</span>
+          </div>
           {activity.length === 0 ? (
             <div className="ghx-empty-state" style={{ color: gh.blue }}>
               <span
@@ -21735,74 +21645,105 @@ function ProfessionalHome({
               })}
             </div>
           )}
-        </div>
+        </section>
 
-        <div className="ghx-col-divider" />
-
-        <aside>
-          <h2 className="ghx-col-title">Top talents</h2>
-          {topTalents.length === 0 ? (
-            <div className="ghx-empty-state" style={{ color: gh.orange }}>
-              <span
-                className="ghx-empty-icon"
-                style={{ background: `${gh.orange}18` }}
-              >
-                <Trophy size={19} />
-              </span>
-              <p className="ghx-empty-text">
-                Le classement s'anime dès les premiers trophées, réponses au
-                forum ou labs créés.
-              </p>
-              <button
-                onClick={() => setTab("classement")}
-                className="ghx-empty-cta"
-              >
-                Voir le barème de points{" "}
-                <ChevronDown
-                  size={13}
-                  style={{ transform: "rotate(-90deg)" }}
-                />
-              </button>
-            </div>
-          ) : (
-            <div>
-              {topTalents.map((r, i) => (
-                <button
-                  key={r.author}
-                  onClick={() => setTab("classement")}
-                  className={`ghx-talent-row${i ? " bordered" : ""}`}
-                >
-                  <span className="ghx-talent-rank">{RANK_MEDALS[i]}</span>
-                  <span
-                    className={`ghx-talent-avatar-wrap${i === 0 ? " rank-0" : ""}`}
-                  >
-                    {r.profile ? (
-                      <Avatar profile={r.profile} size={26} />
-                    ) : (
-                      <span
-                        style={{
-                          width: 26,
-                          height: 26,
-                          borderRadius: "50%",
-                          background: gh.panel2,
-                          border: `1px solid ${gh.border}`,
-                          flexShrink: 0,
-                        }}
-                      />
-                    )}
+        <aside className="ghx-overview-side">
+          <section
+            className="ghx-overview-card"
+            style={{ "--overview-accent": gh.orange }}
+          >
+            <div className="ghx-overview-head">
+              <div className="ghx-overview-heading">
+                <span className="ghx-overview-head-icon">
+                  <Trophy size={17} />
+                </span>
+                <span>
+                  <h2 className="ghx-col-title">Top talents</h2>
+                  <span className="ghx-col-sub">
+                    Les membres les plus actifs
                   </span>
-                  <span className="ghx-talent-name">{r.author}</span>
-                  <span className="ghx-talent-pts">{r.total} pts</span>
-                </button>
-              ))}
+                </span>
+              </div>
+              <span className="ghx-overview-status">Classement</span>
             </div>
-          )}
-          <button onClick={() => setTab("classement")} className="ghx-see-all">
-            Voir le classement complet <ExternalLink size={13} />
-          </button>
+            {topTalents.length === 0 ? (
+              <div className="ghx-empty-state" style={{ color: gh.orange }}>
+                <span
+                  className="ghx-empty-icon"
+                  style={{ background: `${gh.orange}18` }}
+                >
+                  <Trophy size={19} />
+                </span>
+                <p className="ghx-empty-text">
+                  Le classement s'anime dès les premiers trophées, réponses au
+                  forum ou labs créés.
+                </p>
+                <button
+                  onClick={() => setTab("classement")}
+                  className="ghx-empty-cta"
+                >
+                  Voir le barème de points{" "}
+                  <ChevronDown
+                    size={13}
+                    style={{ transform: "rotate(-90deg)" }}
+                  />
+                </button>
+              </div>
+            ) : (
+              <div>
+                {topTalents.map((r, i) => (
+                  <button
+                    key={r.author}
+                    onClick={() => setTab("classement")}
+                    className={`ghx-talent-row${i ? " bordered" : ""}`}
+                  >
+                    <span className="ghx-talent-rank">{RANK_MEDALS[i]}</span>
+                    <span
+                      className={`ghx-talent-avatar-wrap${i === 0 ? " rank-0" : ""}`}
+                    >
+                      {r.profile ? (
+                        <Avatar profile={r.profile} size={26} />
+                      ) : (
+                        <span
+                          style={{
+                            width: 26,
+                            height: 26,
+                            borderRadius: "50%",
+                            background: gh.panel2,
+                            border: `1px solid ${gh.border}`,
+                            flexShrink: 0,
+                          }}
+                        />
+                      )}
+                    </span>
+                    <span className="ghx-talent-name">{r.author}</span>
+                    <span className="ghx-talent-pts">{r.total} pts</span>
+                  </button>
+                ))}
+              </div>
+            )}
+            <button
+              onClick={() => setTab("classement")}
+              className="ghx-see-all"
+            >
+              Voir le classement complet <ExternalLink size={13} />
+            </button>
+          </section>
 
-          <div className="ghx-about">
-            <h2 className="ghx-about-title">À propos de GowlSec</h2>
+          <section className="ghx-overview-card ghx-about">
+            <div className="ghx-overview-head">
+              <div className="ghx-overview-heading">
+                <span className="ghx-overview-head-icon">
+                  <Shield size={17} />
+                </span>
+                <span>
+                  <h2 className="ghx-about-title">À propos de GowlSec</h2>
+                  <span className="ghx-col-sub">
+                    Apprendre et progresser ensemble
+                  </span>
+                </span>
+              </div>
+            </div>
             <p className="ghx-about-text">
               Communauté francophone dédiée au pentest, aux CTF, au réseau et à
               la cybersécurité : entraide entre pairs, apprentissage pratique et
@@ -21818,7 +21759,7 @@ function ProfessionalHome({
             <button onClick={() => setTab("parcours")} className="ghx-see-all">
               Découvrir les parcours <ExternalLink size={13} />
             </button>
-          </div>
+          </section>
         </aside>
       </div>
     </div>

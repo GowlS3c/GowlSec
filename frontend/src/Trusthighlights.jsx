@@ -1,31 +1,16 @@
 import { MessageCircle, Users, ImagePlus, Database } from "lucide-react";
 
-/**
- * Section "Pourquoi GowlSec" à insérer À UN SEUL ENDROIT de la page d'accueil
- * existante (ex: juste après .ghx-hero, avant .ghx-stats).
- * — Aucune classe Tailwind : tout est en CSS pur via <style> (classes "gwlh-").
- * — Chaque carte a sa propre couleur d'accent, un halo renforcé, un léger reflet
- *   au survol et une bordure lumineuse pour être immédiatement remarquée.
- *
- * Usage dans App.jsx :
- *   import TrustHighlights from "./TrustHighlights";
- *   ...
- *   </section>{/* fin de .ghx-hero *\/}
- *   <TrustHighlights gh={gh} />
- *   <div className="ghx-stats">...
- */
-
 const ITEMS = [
   {
     icon: Database,
     title: "Opsec",
-    text: "Aucune IP, aucun email et aucun mot de passe enregistré dans la base de données du site.",
+    text: "Tes données sensibles restent confidentielles : aucune adresse e-mail, adresse IP ou information de connexion n’est affichée sur GowlSec. Seules les informations publiques de ton profil sont visibles.",
     color: "#2ED9A3",
   },
   {
     icon: MessageCircle,
-    title: "Chat public & privé",
-    text: "Discute librement avec les membres, en salon ouvert ou en message privé.",
+    title: "Hub & privé",
+    text: "Pour discuter avec la communauté, rejoins les salons du Hub. Pour envoyer un message privé à un membre, rends-toi dans l’onglet Messages.",
     color: "#5B6EF5",
   },
   {
@@ -36,8 +21,8 @@ const ITEMS = [
   },
   {
     icon: ImagePlus,
-    title: "Profil personnalisable",
-    text: "Bannière et photo de profil à ton image, entièrement modifiables.",
+    title: "Un profil qui te représente",
+    text: "Mets en valeur ton parcours avec une bio, tes certifications et tes comptes Hack The Box, TryHackMe ou Root-Me. Personnalise également ta bannière et ta photo de profil.",
     color: "#FFD166",
   },
 ];
