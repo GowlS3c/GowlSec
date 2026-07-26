@@ -1,4 +1,4 @@
-import prisma from "../lib/prisma.js";
+git push origin mainimport prisma from "../lib/prisma.js";
 
 const SIX_HOURS = 6 * 60 * 60 * 1000;
 const THIRTY_DAYS = 30 * 24 * 60 * 60 * 1000;
