@@ -78,3 +78,15 @@ export const forgotPasswordLimiter = rateLimit({
         message: "Trop de demandes. Réessaie plus tard."
     }
 });
+
+export const twoFactorLimiter = rateLimit({
+    windowMs: 10 * 60 * 1000,
+    limit: 8,
+    standardHeaders: true,
+    legacyHeaders: false,
+    skipSuccessfulRequests: true,
+    message: {
+        success: false,
+        message: "Trop de tentatives A2F. Réessaie dans quelques minutes."
+    }
+});

@@ -97,6 +97,11 @@ import {
   verifyEmail,
   login,
   saveSession,
+  verifyTwoFactorLogin,
+  getTwoFactorStatus,
+  startTwoFactorSetup,
+  enableTwoFactor,
+  disableTwoFactor,
 } from "./api/auth";
 import ProtectedTab from "./components/ProtectedTab";
 import { useAuth } from "./context/AuthContext";
@@ -3427,6 +3432,8 @@ function AuthWidget({
   const [mode, setMode] = useState("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [twoFactorToken, setTwoFactorToken] = useState("");
+  const [twoFactorCode, setTwoFactorCode] = useState("");
   const [busy, setBusy] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [forgotStep, setForgotStep] = useState("email");
@@ -3499,6 +3506,8 @@ function AuthWidget({
   function reset() {
     setEmail("");
     setPassword("");
+    setTwoFactorToken("");
+    setTwoFactorCode("");
     setBusy(false);
     setRememberMe(false);
     setForgotStep("email");
@@ -3552,6 +3561,14 @@ function AuthWidget({
         password,
       });
 
+      if (result.requiresTwoFactor) {
+        setTwoFactorToken(result.twoFactorToken);
+        setMode("two-factor");
+        setTwoFactorCode("");
+        notify("success", "Entre le code de ton application d’authentification.");
+        return;
+      }
+
       saveSession(result);
 
       notify("success", "Connexion réussie.");
@@ -3560,6 +3577,25 @@ function AuthWidget({
       closeModal();
     } catch (err) {
       notify("error", err.message || "Erreur de connexion.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function submitTwoFactor(e) {
+    e.preventDefault();
+    try {
+      setBusy(true);
+      const result = await verifyTwoFactorLogin({
+        twoFactorToken,
+        code: twoFactorCode,
+      });
+      saveSession(result);
+      setCurrentUser(result.user);
+      notify("success", "Identité confirmée.");
+      closeModal();
+    } catch (error) {
+      notify("error", error.message || "Code A2F incorrect.");
     } finally {
       setBusy(false);
     }
@@ -3865,6 +3901,8 @@ function AuthWidget({
                       >
                         {mode === "forgot"
                           ? "Réinitialiser le mot de passe"
+                          : mode === "two-factor"
+                            ? "Double authentification"
                           : "Rejoignez la stack GowlSec"}
                       </h3>
                       <p
@@ -3873,6 +3911,8 @@ function AuthWidget({
                       >
                         {mode === "forgot"
                           ? "Retrouve l'accès à ton compte en quelques secondes."
+                          : mode === "two-factor"
+                            ? "Confirme ton identité avec ton code temporaire ou un code de secours."
                           : "Connexion fluide, inscription premium et expérience cyber startup pensée pour durer."}
                       </p>
                     </div>
@@ -3889,7 +3929,7 @@ function AuthWidget({
                     </button>
                   </div>
 
-                  {mode !== "forgot" && (
+                  {!["forgot", "two-factor"].includes(mode) && (
                     <>
                       <div
                         className="rounded-2xl border p-3.5 mb-4 relative"
@@ -3984,7 +4024,50 @@ function AuthWidget({
                     </>
                   )}
 
-                  {mode === "login" ? (
+                  {mode === "two-factor" ? (
+                    <form onSubmit={submitTwoFactor} className="space-y-3 gowl-fade-in">
+                      <div
+                        className="rounded-xl border p-3 flex gap-3"
+                        style={{ borderColor: `${C.primary}44`, background: `${C.primary}10` }}
+                      >
+                        <KeyRound size={20} color={C.primary} />
+                        <p className="text-xs" style={{ color: C.muted }}>
+                          Ouvre Google Authenticator, Microsoft Authenticator ou Authy.
+                          Tu peux aussi saisir l’un de tes codes de secours.
+                        </p>
+                      </div>
+                      <Field label="Code de vérification">
+                        <input
+                          value={twoFactorCode}
+                          onChange={(event) => setTwoFactorCode(event.target.value)}
+                          placeholder="123456 ou GOWL-XXXX-XXXX-XXXX"
+                          autoComplete="one-time-code"
+                          autoFocus
+                          className="gowl-auth-input w-full px-3 py-3 rounded-xl text-sm text-center tracking-[0.18em]"
+                          style={{ ...inputStyle, background: `${C.panel2}CC` }}
+                        />
+                      </Field>
+                      <PrimaryButton
+                        type="submit"
+                        disabled={busy || twoFactorCode.trim().length < 6}
+                        style={{ width: "100%", justifyContent: "center" }}
+                      >
+                        {busy ? <><Loader2 size={15} className="animate-spin" /> Vérification…</> : "Vérifier et se connecter"}
+                      </PrimaryButton>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setMode("login");
+                          setTwoFactorToken("");
+                          setTwoFactorCode("");
+                        }}
+                        className="text-xs underline underline-offset-2 block mx-auto"
+                        style={{ color: C.muted }}
+                      >
+                        Retour à la connexion
+                      </button>
+                    </form>
+                  ) : mode === "login" ? (
                     <form
                       onSubmit={submitLogin}
                       className="space-y-2.5 gowl-fade-in"
@@ -4426,6 +4509,201 @@ function AuthSidebarInfo({ profiles }) {
 /* ---------------------------------------------------------------------
    Profil
 --------------------------------------------------------------------- */
+function TwoFactorSecurityCard({ currentUser, setCurrentUser }) {
+  const [status, setStatus] = useState(null);
+  const [step, setStep] = useState("idle");
+  const [password, setPassword] = useState("");
+  const [code, setCode] = useState("");
+  const [setup, setSetup] = useState(null);
+  const [recoveryCodes, setRecoveryCodes] = useState([]);
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState("");
+
+  useEffect(() => {
+    let active = true;
+    getTwoFactorStatus()
+      .then((data) => active && setStatus(data))
+      .catch((error) => active && setMessage(error.message));
+    return () => { active = false; };
+  }, []);
+
+  async function beginSetup() {
+    try {
+      setBusy(true);
+      setMessage("");
+      const data = await startTwoFactorSetup(password);
+      setSetup(data);
+      setPassword("");
+      setStep("verify");
+    } catch (error) {
+      setMessage(error.message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function confirmSetup() {
+    try {
+      setBusy(true);
+      setMessage("");
+      const data = await enableTwoFactor(code);
+      setRecoveryCodes(data.recoveryCodes || []);
+      setStatus({ enabled: true, recoveryCodesRemaining: data.recoveryCodes?.length || 0 });
+      setCurrentUser?.((user) => ({ ...user, twoFactorEnabled: true }));
+      setCode("");
+      setStep("recovery");
+    } catch (error) {
+      setMessage(error.message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function turnOff() {
+    try {
+      setBusy(true);
+      setMessage("");
+      await disableTwoFactor({ password, code });
+      setStatus({ enabled: false, recoveryCodesRemaining: 0 });
+      setCurrentUser?.((user) => ({ ...user, twoFactorEnabled: false }));
+      setPassword("");
+      setCode("");
+      setStep("idle");
+      setMessage("Double authentification désactivée.");
+    } catch (error) {
+      setMessage(error.message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  if (!currentUser) return null;
+
+  return (
+    <Panel
+      className="mb-5 p-4 sm:p-5"
+      style={{
+        background: `linear-gradient(135deg, ${C.panel}F2, ${C.primary}0C)`,
+        border: `1px solid ${status?.enabled ? `${C.ok}55` : C.line}`,
+      }}
+    >
+      <div className="flex items-start justify-between gap-4 flex-wrap">
+        <div className="flex gap-3">
+          <span
+            className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+            style={{ background: `${status?.enabled ? C.ok : C.primary}18`, color: status?.enabled ? C.ok : C.primary }}
+          >
+            <Shield size={20} />
+          </span>
+          <div>
+            <h3 className="font-semibold" style={{ color: C.text }}>Sécurité du compte</h3>
+            <p className="text-xs mt-1" style={{ color: C.muted }}>
+              Double authentification par application TOTP.
+            </p>
+          </div>
+        </div>
+        <span
+          className="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase"
+          style={{
+            color: status?.enabled ? C.ok : C.muted,
+            background: status?.enabled ? `${C.ok}14` : C.panel2,
+            border: `1px solid ${status?.enabled ? `${C.ok}45` : C.line}`,
+            fontFamily: MONO_FONT,
+          }}
+        >
+          {status?.enabled ? "A2F activée" : "A2F désactivée"}
+        </span>
+      </div>
+
+      {message && (
+        <p className="text-xs mt-3 px-3 py-2 rounded-lg" style={{ color: C.warn, background: `${C.warn}10` }}>
+          {message}
+        </p>
+      )}
+
+      {!status?.enabled && step === "idle" && (
+        <div className="mt-4 flex gap-2 flex-wrap">
+          <input
+            type="password"
+            value={password}
+            onChange={(event) => setPassword(event.target.value)}
+            placeholder="Confirme ton mot de passe"
+            className="flex-1 min-w-[220px] px-3 py-2.5 rounded-xl text-sm"
+            style={inputStyle}
+          />
+          <PrimaryButton onClick={beginSetup} disabled={busy || !password}>
+            {busy ? <Loader2 size={14} className="animate-spin" /> : <KeyRound size={14} />}
+            Configurer l’A2F
+          </PrimaryButton>
+        </div>
+      )}
+
+      {!status?.enabled && step === "verify" && setup && (
+        <div className="mt-4 grid sm:grid-cols-[160px_1fr] gap-4 items-center">
+          <img src={setup.qrCode} alt="QR code A2F GowlSec" className="w-40 h-40 rounded-xl bg-white p-2" />
+          <div className="space-y-3">
+            <p className="text-xs" style={{ color: C.muted }}>
+              Scanne ce QR code, puis saisis le code à 6 chiffres. Clé manuelle :
+            </p>
+            <code className="block p-2 rounded-lg text-xs break-all select-all" style={{ background: C.panel2, color: C.primary }}>
+              {setup.manualKey}
+            </code>
+            <input
+              value={code}
+              onChange={(event) => setCode(event.target.value.replace(/\D/g, "").slice(0, 6))}
+              placeholder="123456"
+              inputMode="numeric"
+              autoComplete="one-time-code"
+              className="w-full px-3 py-2.5 rounded-xl text-center tracking-[0.3em]"
+              style={inputStyle}
+            />
+            <PrimaryButton onClick={confirmSetup} disabled={busy || code.length !== 6}>
+              Activer maintenant
+            </PrimaryButton>
+          </div>
+        </div>
+      )}
+
+      {step === "recovery" && recoveryCodes.length > 0 && (
+        <div className="mt-4 rounded-xl p-4" style={{ background: `${C.warn}0C`, border: `1px solid ${C.warn}35` }}>
+          <p className="text-sm font-semibold" style={{ color: C.warn }}>Enregistre ces codes de secours maintenant</p>
+          <p className="text-xs mt-1 mb-3" style={{ color: C.muted }}>Chaque code ne fonctionne qu’une seule fois et ne sera plus réaffiché.</p>
+          <div className="grid sm:grid-cols-2 gap-2">
+            {recoveryCodes.map((item) => <code key={item} className="px-3 py-2 rounded-lg text-xs select-all" style={{ background: C.panel2, color: C.text }}>{item}</code>)}
+          </div>
+          <GhostButton onClick={() => navigator.clipboard?.writeText(recoveryCodes.join("\n"))} style={{ marginTop: 12 }}>
+            Copier les codes
+          </GhostButton>
+        </div>
+      )}
+
+      {status?.enabled && step !== "recovery" && (
+        <div className="mt-4">
+          {step !== "disable" ? (
+            <div className="flex items-center justify-between gap-3 flex-wrap">
+              <p className="text-xs" style={{ color: C.muted }}>
+                {status.recoveryCodesRemaining} code(s) de secours disponible(s).
+              </p>
+              <GhostButton onClick={() => setStep("disable")} style={{ color: C.alert }}>
+                Désactiver l’A2F
+              </GhostButton>
+            </div>
+          ) : (
+            <div className="grid sm:grid-cols-2 gap-2">
+              <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Mot de passe" className="px-3 py-2.5 rounded-xl text-sm" style={inputStyle} />
+              <input value={code} onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))} placeholder="Code à 6 chiffres" className="px-3 py-2.5 rounded-xl text-sm" style={inputStyle} />
+              <GhostButton onClick={() => setStep("idle")}>Annuler</GhostButton>
+              <PrimaryButton onClick={turnOff} disabled={busy || !password || code.length !== 6} style={{ background: C.alert }}>
+                Confirmer la désactivation
+              </PrimaryButton>
+            </div>
+          )}
+        </div>
+      )}
+    </Panel>
+  );
+}
+
 function ProfileTab({
   currentUser,
   setCurrentUser,
@@ -5049,6 +5327,11 @@ function ProfileTab({
           event.currentTarget.value = "";
         }}
         onChange={(event) => handleProfileImage(event, "banner")}
+      />
+
+      <TwoFactorSecurityCard
+        currentUser={currentUser}
+        setCurrentUser={setCurrentUser}
       />
 
       <div

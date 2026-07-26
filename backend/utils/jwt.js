@@ -26,6 +26,22 @@ export function verifyAccessToken(token) {
     return jwt.verify(token, JWT_SECRET);
 }
 
+export function generateTwoFactorToken(user) {
+    return jwt.sign(
+        { id: user.id, purpose: "two-factor-login" },
+        JWT_SECRET,
+        { expiresIn: "5m" }
+    );
+}
+
+export function verifyTwoFactorToken(token) {
+    const payload = jwt.verify(token, JWT_SECRET);
+    if (payload.purpose !== "two-factor-login") {
+        throw new Error("Jeton A2F invalide.");
+    }
+    return payload;
+}
+
 export function generateRefreshToken() {
     return crypto.randomBytes(64).toString("hex");
 }

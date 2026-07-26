@@ -21,6 +21,10 @@ model User {
   resetPasswordToken        String?
   resetPasswordTokenExpires DateTime?
   createdAt                 DateTime  @default(now())
+  twoFactorEnabled          Boolean   @default(false)
+  twoFactorSecret           String?   @db.Text
+  twoFactorRecoveryCodes    String[]  @default([])
+  twoFactorEnabledAt        DateTime?
 
   bio             String    @default("") @db.VarChar(300)
   github          String    @default("") @db.VarChar(39)

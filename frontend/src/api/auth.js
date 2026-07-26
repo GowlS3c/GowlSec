@@ -53,6 +53,54 @@ export async function login({ email, password }) {
   return data;
 }
 
+async function authRequest(path, options = {}) {
+  const token = localStorage.getItem("gowlsec_token");
+  const response = await fetch(`${API_URL}${path}`, {
+    ...options,
+    credentials: "include",
+    headers: {
+      ...(options.body ? { "Content-Type": "application/json" } : {}),
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...options.headers,
+    },
+  });
+  const data = await response.json().catch(() => null);
+  if (!response.ok) throw new Error(data?.message || "Action impossible.");
+  return data;
+}
+
+export function verifyTwoFactorLogin({ twoFactorToken, code }) {
+  return authRequest("/api/auth/2fa/login", {
+    method: "POST",
+    body: JSON.stringify({ twoFactorToken, code }),
+  });
+}
+
+export function getTwoFactorStatus() {
+  return authRequest("/api/auth/2fa/status");
+}
+
+export function startTwoFactorSetup(password) {
+  return authRequest("/api/auth/2fa/setup", {
+    method: "POST",
+    body: JSON.stringify({ password }),
+  });
+}
+
+export function enableTwoFactor(code) {
+  return authRequest("/api/auth/2fa/enable", {
+    method: "POST",
+    body: JSON.stringify({ code }),
+  });
+}
+
+export function disableTwoFactor({ password, code }) {
+  return authRequest("/api/auth/2fa/disable", {
+    method: "POST",
+    body: JSON.stringify({ password, code }),
+  });
+}
+
 export function saveSession(data) {
   if (data?.accessToken) {
     localStorage.setItem("gowlsec_token", data.accessToken);

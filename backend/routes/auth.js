@@ -5,7 +5,13 @@ import {
   login,
   logout,
   refreshToken,
+  completeTwoFactorLogin,
+  getTwoFactorStatus,
+  setupTwoFactor,
+  enableTwoFactor,
+  disableTwoFactor,
 } from "../controllers/authController.js";
+import { authMiddleware } from "../middleware/authMiddleware.js";
 
 import { verifyEmail } from "../controllers/emailVerificationController.js";
 import { resendVerification } from "../controllers/resendVerificationController.js";
@@ -16,6 +22,7 @@ import {
   loginLimiter,
   registerLimiter,
   forgotPasswordLimiter,
+  twoFactorLimiter,
 } from "../middleware/rateLimiter.js";
 
 import { verifyTurnstile } from "../middleware/turnstile.js";
@@ -34,6 +41,12 @@ router.post(
   loginLimiter,
   login
 );
+
+router.post("/2fa/login", twoFactorLimiter, completeTwoFactorLogin);
+router.get("/2fa/status", authMiddleware, getTwoFactorStatus);
+router.post("/2fa/setup", authMiddleware, twoFactorLimiter, setupTwoFactor);
+router.post("/2fa/enable", authMiddleware, twoFactorLimiter, enableTwoFactor);
+router.post("/2fa/disable", authMiddleware, twoFactorLimiter, disableTwoFactor);
 
 router.post(
   "/logout",

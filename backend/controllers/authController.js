@@ -5,8 +5,19 @@ import { z } from "zod";
 import {
     generateAccessToken,
     generateRefreshToken,
-    hashRefreshToken
+    hashRefreshToken,
+    generateTwoFactorToken,
+    verifyTwoFactorToken
 } from "../utils/jwt.js";
+import {
+  createRecoveryCodes,
+  createQrCode,
+  createTotpSecret,
+  decryptSecret,
+  encryptSecret,
+  hashRecoveryCode,
+  verifyTotp,
+} from "../services/twoFactorService.js";
 
 import crypto from "crypto";
 import { sendVerificationEmail } from "../services/emailService.js";
@@ -38,6 +49,40 @@ const registerSchema = z.object({
 
     password: z.string().min(8)
 });
+
+async function createSession(user, res) {
+  const accessToken = generateAccessToken(user);
+  const refreshTokenValue = generateRefreshToken();
+  const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+
+  await prisma.refreshToken.create({
+    data: {
+      tokenHash: hashRefreshToken(refreshTokenValue),
+      expiresAt,
+      userId: user.id,
+    },
+  });
+
+  res.cookie("refreshToken", refreshTokenValue, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "strict",
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+  });
+
+  return res.json({
+    success: true,
+    message: "Connexion réussie.",
+    accessToken,
+    user: {
+      id: user.id,
+      username: user.username,
+      email: user.email,
+      role: user.role,
+      twoFactorEnabled: user.twoFactorEnabled,
+    },
+  });
+}
 
 export async function register(req, res) {
     try {
@@ -169,55 +214,157 @@ if (!user.emailVerified) {
     });
 }
 
+if (user.twoFactorEnabled) {
+  return res.json({
+    success: true,
+    requiresTwoFactor: true,
+    twoFactorToken: generateTwoFactorToken(user),
+    message: "Code A2F requis.",
+  });
+}
 
-
-const accessToken = generateAccessToken(user);
-
-
-const refreshTokenValue = generateRefreshToken();
-
-
-const hashedRefreshToken = hashRefreshToken(refreshTokenValue);
-
-
-const expiresAt = new Date();
-expiresAt.setDate(expiresAt.getDate() + 7);
-
-
-await prisma.refreshToken.create({
-    data: {
-        tokenHash: hashedRefreshToken,
-        expiresAt,
-        userId: user.id
-    }
-});
-
-// Cookie sécurisé
-res.cookie("refreshToken", refreshTokenValue, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "strict",
-    maxAge: 7 * 24 * 60 * 60 * 1000
-});
-
-// Réponse
-return res.json({
-  success: true,
-  message: "Connexion réussie.",
-  accessToken,
-  user: {
-    id: user.id,
-    username: user.username,
-    email: user.email,
-    role: user.role
-  }
-});
+return createSession(user, res);
 
   } catch (error) {
     return res.status(500).json({
       success: false,
       message: error.message
     });
+  }
+}
+
+export async function completeTwoFactorLogin(req, res) {
+  try {
+    const { twoFactorToken, code } = req.body;
+    if (!twoFactorToken || !code) {
+      return res.status(400).json({ success: false, message: "Code A2F requis." });
+    }
+
+    const payload = verifyTwoFactorToken(twoFactorToken);
+    const user = await prisma.user.findUnique({ where: { id: payload.id } });
+    if (!user?.twoFactorEnabled || !user.twoFactorSecret) {
+      return res.status(401).json({ success: false, message: "Session A2F invalide." });
+    }
+
+    const normalizedCode = String(code).trim();
+    const validTotp = verifyTotp(normalizedCode, decryptSecret(user.twoFactorSecret));
+    const recoveryHash = hashRecoveryCode(normalizedCode);
+    const recoveryIndex = user.twoFactorRecoveryCodes.indexOf(recoveryHash);
+
+    if (!validTotp && recoveryIndex === -1) {
+      return res.status(401).json({ success: false, message: "Code A2F incorrect." });
+    }
+
+    if (!validTotp) {
+      const consumed = await prisma.user.updateMany({
+        where: {
+          id: user.id,
+          twoFactorRecoveryCodes: { has: recoveryHash },
+        },
+        data: {
+          twoFactorRecoveryCodes: user.twoFactorRecoveryCodes.filter(
+            (_, index) => index !== recoveryIndex
+          ),
+        },
+      });
+      if (consumed.count !== 1) {
+        return res.status(401).json({ success: false, message: "Code de secours déjà utilisé." });
+      }
+    }
+
+    return createSession(user, res);
+  } catch {
+    return res.status(401).json({
+      success: false,
+      message: "La vérification A2F a expiré. Reconnecte-toi.",
+    });
+  }
+}
+
+export async function getTwoFactorStatus(req, res) {
+  const user = await prisma.user.findUnique({
+    where: { id: req.user.id },
+    select: { twoFactorEnabled: true, twoFactorRecoveryCodes: true },
+  });
+  return res.json({
+    success: true,
+    enabled: Boolean(user?.twoFactorEnabled),
+    recoveryCodesRemaining: user?.twoFactorRecoveryCodes.length || 0,
+  });
+}
+
+export async function setupTwoFactor(req, res) {
+  try {
+    const user = await prisma.user.findUnique({ where: { id: req.user.id } });
+    if (!user || !(await bcrypt.compare(req.body.password || "", user.password))) {
+      return res.status(401).json({ success: false, message: "Mot de passe incorrect." });
+    }
+    if (user.twoFactorEnabled) {
+      return res.status(409).json({ success: false, message: "L’A2F est déjà activée." });
+    }
+
+    const secret = createTotpSecret();
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { twoFactorSecret: encryptSecret(secret), twoFactorRecoveryCodes: [] },
+    });
+
+    return res.json({
+      success: true,
+      qrCode: await createQrCode(secret, user.email),
+      manualKey: secret,
+    });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+}
+
+export async function enableTwoFactor(req, res) {
+  try {
+    const user = await prisma.user.findUnique({ where: { id: req.user.id } });
+    if (!user?.twoFactorSecret) {
+      return res.status(400).json({ success: false, message: "Commence d’abord la configuration A2F." });
+    }
+    if (!verifyTotp(req.body.code, decryptSecret(user.twoFactorSecret))) {
+      return res.status(400).json({ success: false, message: "Code à 6 chiffres incorrect." });
+    }
+
+    const recoveryCodes = createRecoveryCodes();
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        twoFactorEnabled: true,
+        twoFactorEnabledAt: new Date(),
+        twoFactorRecoveryCodes: recoveryCodes.map(hashRecoveryCode),
+      },
+    });
+    return res.json({ success: true, recoveryCodes });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+}
+
+export async function disableTwoFactor(req, res) {
+  try {
+    const user = await prisma.user.findUnique({ where: { id: req.user.id } });
+    const passwordValid = user && await bcrypt.compare(req.body.password || "", user.password);
+    const codeValid = user?.twoFactorSecret &&
+      verifyTotp(req.body.code, decryptSecret(user.twoFactorSecret));
+    if (!passwordValid || !codeValid) {
+      return res.status(401).json({ success: false, message: "Mot de passe ou code A2F incorrect." });
+    }
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        twoFactorEnabled: false,
+        twoFactorSecret: null,
+        twoFactorRecoveryCodes: [],
+        twoFactorEnabledAt: null,
+      },
+    });
+    return res.json({ success: true, message: "A2F désactivée." });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
   }
 }
 
