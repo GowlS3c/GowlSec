@@ -102,6 +102,7 @@ import {
   startTwoFactorSetup,
   enableTwoFactor,
   disableTwoFactor,
+  completeDiscordLogin,
 } from "./api/auth";
 import ProtectedTab from "./components/ProtectedTab";
 import { useAuth } from "./context/AuthContext";
@@ -3460,6 +3461,71 @@ function AuthWidget({
 
   useEffect(() => {
     if (typeof window === "undefined") return;
+
+    const params = new URLSearchParams(window.location.search);
+    const discordCode = params.get("discord_code");
+    const discordError = params.get("discord_error");
+
+    if (!discordCode && !discordError) return;
+
+    params.delete("discord_code");
+    params.delete("discord_error");
+
+    const query = params.toString();
+    window.history.replaceState(
+      {},
+      document.title,
+      `${window.location.pathname}${query ? `?${query}` : ""}${window.location.hash}`,
+    );
+
+    if (discordError) {
+      const errorMessages = {
+        invalid_state: "La vérification de sécurité Discord a échoué.",
+        token_exchange: "Discord n’a pas pu confirmer la connexion.",
+        profile: "Impossible de récupérer ton profil Discord.",
+        email_not_verified:
+          "Tu dois vérifier ton adresse e-mail sur Discord avant de continuer.",
+        account_link_required:
+          "Un compte GowlSec utilise déjà cette adresse. Connecte-toi normalement pour lier Discord.",
+        server: "Une erreur serveur est survenue pendant la connexion Discord.",
+      };
+
+      setToast({
+        type: "error",
+        message:
+          errorMessages[discordError] || "Connexion Discord annulée.",
+      });
+      setOpen(true);
+      return;
+    }
+
+    async function finishDiscordLogin() {
+      try {
+        setBusy(true);
+        const result = await completeDiscordLogin(discordCode);
+        saveSession(result);
+        setCurrentUser(result.user);
+        setToast({
+          type: "success",
+          message: "Connexion avec Discord réussie.",
+        });
+        setOpen(false);
+      } catch (error) {
+        setToast({
+          type: "error",
+          message: error.message || "Connexion Discord impossible.",
+        });
+        setOpen(true);
+      } finally {
+        setBusy(false);
+      }
+    }
+
+    finishDiscordLogin();
+  }, [setCurrentUser]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
     const openRegister = () => {
       setMode("register");
       openModal();
@@ -3543,11 +3609,11 @@ function AuthWidget({
     setToast({ type, message });
   }
 
- function connectDiscord() {
-  const apiUrl = import.meta.env.VITE_API_URL.replace(/\/$/, "");
+  function connectDiscord() {
+    const apiUrl = import.meta.env.VITE_API_URL.replace(/\/$/, "");
 
-  window.location.href = `${apiUrl}/api/auth/discord`;
-}
+    window.location.href = `${apiUrl}/api/auth/discord`;
+  }
   async function submitLogin(e) {
     e.preventDefault();
 
