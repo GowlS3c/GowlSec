@@ -3,10 +3,9 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
   directUrl = env("DIRECT_URL")
-
 }
 
 model User {
@@ -28,35 +27,35 @@ model User {
   twoFactorRecoveryCodes    String[]  @default([])
   twoFactorEnabledAt        DateTime?
 
-  bio             String    @default("") @db.VarChar(300)
-  github          String    @default("") @db.VarChar(39)
-  twitter         String    @default("") @db.VarChar(50)
-  discord         String    @default("") @db.VarChar(80)
-  avatarKey       String    @default("bird") @db.VarChar(30)
-  avatarImage     String?   @db.Text
-  avatarPublicId  String?   @db.VarChar(255)
-  banner          String    @default("indigo") @db.VarChar(30)
-  bannerImage     String?   @db.Text
-  bannerPublicId  String?   @db.VarChar(255)
-  bannerColor     String    @default("") @db.VarChar(20)
-  currentStreak   Int       @default(0)
-  longestStreak   Int       @default(0)
-  lastActiveDate  DateTime?
-  profileStatus   String    @default("learning") @db.VarChar(30)
-  specialties     String[]  @default([])
-  isProfilePublic Boolean   @default(true)
-  showAge         Boolean   @default(true)
-  showSocials     Boolean   @default(true)
-  showCertifications Boolean @default(true)
-  age             Int?
-  pinnedBadges    String[]  @default([])
-  customRole      String    @default("") @db.VarChar(40)
-  hackTheBox      String    @default("") @db.VarChar(80)
-  rootMe          String    @default("") @db.VarChar(80)
-  tryHackMe       String    @default("") @db.VarChar(80)
-  otherPlatformName String  @default("") @db.VarChar(60)
-  otherPlatformUrl  String  @default("") @db.VarChar(300)
-  certifications  String[]  @default([])
+  bio                String    @default("") @db.VarChar(300)
+  github             String    @default("") @db.VarChar(39)
+  twitter            String    @default("") @db.VarChar(50)
+  discord            String    @default("") @db.VarChar(80)
+  avatarKey          String    @default("bird") @db.VarChar(30)
+  avatarImage        String?   @db.Text
+  avatarPublicId     String?   @db.VarChar(255)
+  banner             String    @default("indigo") @db.VarChar(30)
+  bannerImage        String?   @db.Text
+  bannerPublicId     String?   @db.VarChar(255)
+  bannerColor        String    @default("") @db.VarChar(20)
+  currentStreak      Int       @default(0)
+  longestStreak      Int       @default(0)
+  lastActiveDate     DateTime?
+  profileStatus      String    @default("learning") @db.VarChar(30)
+  specialties        String[]  @default([])
+  isProfilePublic    Boolean   @default(true)
+  showAge            Boolean   @default(true)
+  showSocials        Boolean   @default(true)
+  showCertifications Boolean   @default(true)
+  age                Int?
+  pinnedBadges       String[]  @default([])
+  customRole         String    @default("") @db.VarChar(40)
+  hackTheBox         String    @default("") @db.VarChar(80)
+  rootMe             String    @default("") @db.VarChar(80)
+  tryHackMe          String    @default("") @db.VarChar(80)
+  otherPlatformName  String    @default("") @db.VarChar(60)
+  otherPlatformUrl   String    @default("") @db.VarChar(300)
+  certifications     String[]  @default([])
 
   refreshTokens RefreshToken[]
   hubMessages   HubMessage[]
@@ -103,7 +102,6 @@ model User {
   authProvider    String  @default("local")
 
   oauthLoginCodes OAuthLoginCode[]
-
 }
 
 model RefreshToken {
@@ -597,8 +595,15 @@ model TeamScoreEntry {
   @@index([teamId, rank])
 }
 
-function connectDiscord() {
-  const apiUrl = import.meta.env.VITE_API_URL.replace(/\/$/, "");
+model OAuthLoginCode {
+  id        Int      @id @default(autoincrement())
+  codeHash  String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
 
-  window.location.href = `${apiUrl}/api/auth/discord`;
+  userId Int
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
 }
