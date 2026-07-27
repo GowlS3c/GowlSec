@@ -1,6 +1,4 @@
-const API_URL = import.meta.env.VITE_API_URL;
-
-
+const API_URL = import.meta.env.VITE_API_URL?.replace(/\/$/, "");
 
 export async function register({
   username,
@@ -8,28 +6,21 @@ export async function register({
   password,
   turnstileToken,
 }) {
-  const response = await fetch(
-    `${API_URL}/api/auth/register`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        username,
-        email,
-        password,
-        turnstileToken,
-      }),
-    }
-  );
+  const response = await fetch(`${API_URL}/api/auth/register`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      username,
+      email,
+      password,
+      turnstileToken,
+    }),
+  });
 
   const data = await response.json().catch(() => null);
 
   if (!response.ok) {
-    throw new Error(
-      data?.message || "Échec de l'inscription."
-    );
+    throw new Error(data?.message || "Échec de l'inscription.");
   }
 
   return data;
@@ -38,9 +29,7 @@ export async function register({
 export async function login({ email, password }) {
   const response = await fetch(`${API_URL}/api/auth/login`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email, password }),
   });
 
@@ -64,8 +53,13 @@ async function authRequest(path, options = {}) {
       ...options.headers,
     },
   });
+
   const data = await response.json().catch(() => null);
-  if (!response.ok) throw new Error(data?.message || "Action impossible.");
+
+  if (!response.ok) {
+    throw new Error(data?.message || "Action impossible.");
+  }
+
   return data;
 }
 
@@ -101,6 +95,13 @@ export function disableTwoFactor({ password, code }) {
   });
 }
 
+export function completeDiscordLogin(code) {
+  return authRequest("/api/auth/discord/session", {
+    method: "POST",
+    body: JSON.stringify({ code }),
+  });
+}
+
 export function saveSession(data) {
   if (data?.accessToken) {
     localStorage.setItem("gowlsec_token", data.accessToken);
@@ -133,9 +134,7 @@ export function logout() {
 export async function forgotPassword(email) {
   const response = await fetch(`${API_URL}/api/auth/forgot-password`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email }),
   });
 
@@ -148,38 +147,29 @@ export async function forgotPassword(email) {
   return data;
 }
 
-
 export async function resetPassword({ token, password }) {
   const response = await fetch(`${API_URL}/api/auth/reset-password`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      token,
-      password,
-    }),
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ token, password }),
   });
 
   const data = await response.json().catch(() => null);
 
   if (!response.ok) {
-    throw new Error(data?.message || "Impossible de changer le mot de passe.");
+    throw new Error(
+      data?.message || "Impossible de changer le mot de passe.",
+    );
   }
 
   return data;
 }
 
-
 export async function resendVerification(email) {
   const response = await fetch(`${API_URL}/api/auth/resend-verification`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      email,
-    }),
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email }),
   });
 
   const data = await response.json().catch(() => null);
@@ -193,15 +183,13 @@ export async function resendVerification(email) {
 
 export async function verifyEmail(token) {
   const response = await fetch(
-    `${API_URL}/api/auth/verify-email?token=${encodeURIComponent(token)}`
+    `${API_URL}/api/auth/verify-email?token=${encodeURIComponent(token)}`,
   );
 
   const data = await response.json().catch(() => null);
 
   if (!response.ok) {
-    throw new Error(
-      data?.message || "Impossible de vérifier l’email."
-    );
+    throw new Error(data?.message || "Impossible de vérifier l’email.");
   }
 
   return data;
