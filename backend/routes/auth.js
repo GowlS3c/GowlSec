@@ -27,6 +27,12 @@ import {
 
 import { verifyTurnstile } from "../middleware/turnstile.js";
 
+import {
+  discordLogin,
+  discordCallback,
+  discordSession,
+} from "../controllers/discordAuthController.js";
+
 const router = express.Router();
 
 router.post(
@@ -78,6 +84,18 @@ router.post(
 router.post(
   "/reset-password",
   resetPassword
+);
+
+router.get("/discord", discordLogin);
+
+router.get(
+  "/discord/callback",
+  discordCallback
+);
+
+router.post(
+  "/discord/session",
+  discordSession
 );
 
 export default router;

@@ -3543,13 +3543,11 @@ function AuthWidget({
     setToast({ type, message });
   }
 
-  function connectDiscord() {
-    notify(
-      "success",
-      "La connexion via Discord arrive bientôt — utilise l'e-mail en attendant.",
-    );
-  }
+ function connectDiscord() {
+  const apiUrl = import.meta.env.VITE_API_URL.replace(/\/$/, "");
 
+  window.location.href = `${apiUrl}/api/auth/discord`;
+}
   async function submitLogin(e) {
     e.preventDefault();
 

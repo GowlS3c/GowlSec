@@ -96,6 +96,14 @@ model User {
   reportsResolved         CommunityReport[]       @relation("ReportResolver")
   notifications           UserNotification[]
   teamScoresCreated       TeamScoreEntry[]
+
+  discordId       String? @unique
+  discordUsername String?
+  discordAvatar   String?
+  authProvider    String  @default("local")
+
+  oauthLoginCodes OAuthLoginCode[]
+
 }
 
 model RefreshToken {
@@ -587,4 +595,10 @@ model TeamScoreEntry {
 
   @@unique([teamId, eventId])
   @@index([teamId, rank])
+}
+
+function connectDiscord() {
+  const apiUrl = import.meta.env.VITE_API_URL.replace(/\/$/, "");
+
+  window.location.href = `${apiUrl}/api/auth/discord`;
 }
